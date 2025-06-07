@@ -23,6 +23,7 @@ pipeline {
                 apt-get install -y make wget curl git
                 '''
         }
+        }
         
         stage('Checkout') {
             steps {

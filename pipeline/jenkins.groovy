@@ -16,6 +16,14 @@ pipeline {
 
 
     stages {
+        stage('Install tools') {
+            steps {
+                sh '''
+                apt-get update
+                apt-get install -y make wget curl git
+                '''
+        }
+        
         stage('Checkout') {
             steps {
                 checkout scm

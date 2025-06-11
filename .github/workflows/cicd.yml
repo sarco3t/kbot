@@ -83,6 +83,23 @@ jobs:
         with:
           cmd: yq -i '.image.tag=strenv(VERSION) | .image.arch=strenv(TARGETARCH)' helm/values.yaml
 
+      - name: Set chart version
+        run: |
+          CHART_VERSION=$(git describe --tags --abbrev=0 | sed 's/^v//')
+          echo "CHART_VERSION=$CHART_VERSION" >> $GITHUB_ENV
+          echo "Using version: $CHART_VERSION"
+
+      - name: Update Chart.yaml
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq -i '.version = strenv(CHART_VERSION)' helm/Chart.yaml
+
+      - name: Update Chart.yaml
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq -i '.appVersion = strenv(VERSION)' helm/Chart.yaml
+
+
       - name: Commit Helm chart changes
         run: |
           git config user.name github-actions

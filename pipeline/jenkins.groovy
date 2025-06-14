@@ -47,7 +47,7 @@ spec:
         stage('Run golangci-lint') {
             steps {
                 dir("${env.WORKSPACE}") {
-                    sh 'golangci-lint run --timeout=5m'
+                    sh 'export GIT_DIR=.git && export GIT_WORK_TREE=. && golangci-lint run --timeout=5m'
                 }
             }
         }
@@ -55,7 +55,14 @@ spec:
         stage('Build') {
             steps {
                 dir("${env.WORKSPACE}") {
-                    sh "make image TARGETOS=${params.TARGETOS} TARGETARCH=${params.TARGETARCH}"
+                sh """
+                bash -c '
+                    export GIT_DIR=.git
+                    export GIT_WORK_TREE=.
+                    git config --global --add safe.directory "\$(pwd)"
+                    make image TARGETOS=${params.TARGETOS} TARGETARCH=${params.TARGETARCH}
+                '
+                """
                 }
             }
         }

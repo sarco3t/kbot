@@ -46,7 +46,9 @@ spec:
 
         stage('Run golangci-lint') {
             steps {
-                sh 'golangci-lint run --timeout=5m'
+                dir("${env.WORKSPACE}") {
+                    sh 'golangci-lint run --timeout=5m'
+                }
             }
         }
 

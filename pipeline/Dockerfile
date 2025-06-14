@@ -10,7 +10,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Go
-ENV GO_VERSION=1.22.4
+ENV GO_VERSION=1.24.0
 ENV GOROOT=/usr/local/go
 ENV PATH=$GOROOT/bin:$PATH
 

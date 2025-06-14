@@ -52,7 +52,9 @@ spec:
 
         stage('Build') {
             steps {
-                sh 'make build TARGETARCH=$TARGETARCH TARGETOS=$TARGETOS'
+                dir("${env.WORKSPACE}") {
+                    sh "make build TARGETOS=${params.TARGETOS} TARGETARCH=${params.TARGETARCH}"
+                }
             }
         }
     }

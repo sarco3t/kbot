@@ -3,8 +3,6 @@ stages:
   - build
 
 variables:
-  DOCKER_HOST: tcp://docker:2375/
-  DOCKER_TLS_CERTDIR: ""
   TARGETARCH: "amd64"
   TARGETOS: "linux"
   CGO_ENABLED: "0"
@@ -22,6 +20,7 @@ lint:
     - golangci-lint run --timeout=5m
 
 build:
+  image: docker:24
   stage: build
   script:
     - make image TARGETARCH=$TARGETARCH TARGETOS=$TARGETOS

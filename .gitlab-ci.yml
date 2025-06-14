@@ -1,0 +1,25 @@
+stages:
+  - lint
+  - build
+
+variables:
+  TARGETARCH: "amd64"
+  TARGETOS: "linux"
+  CGO_ENABLED: "0"
+
+# Kubernetes runner uses this image as the base
+default:
+  image: ghcr.io/sarco3t/jenkins-go-agent:v0.0.3-c57e511
+  before_script:
+    - echo "Using TARGETARCH=$TARGETARCH TARGETOS=$TARGETOS"
+    - echo "Build started on $(date)"
+
+lint:
+  stage: lint
+  script:
+    - golangci-lint run --timeout=5m
+
+build:
+  stage: build
+  script:
+    - make image TARGETARCH=$TARGETARCH TARGETOS=$TARGETOS

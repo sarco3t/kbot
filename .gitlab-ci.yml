@@ -2,10 +2,16 @@ stages:
   - lint
   - build
 
+
+services:
+  - docker:24.0.5-dind
+
 variables:
   TARGETARCH: "amd64"
   TARGETOS: "linux"
   CGO_ENABLED: "0"
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_TLS_CERTDIR: ""
 
 # Kubernetes runner uses this image as the base
 default:

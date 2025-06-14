@@ -111,3 +111,7 @@ macos-arm:
 
 image-windows-arm:
 	TARGETOS=windows TARGETARCH=arm64 docker build . -t ${REGISTRY}/${APP}:${VERSION}
+
+jenkins-image:
+	docker build pipeline -t ${REGISTRY}/jenkins-go-agent:${VERSION} --load
+

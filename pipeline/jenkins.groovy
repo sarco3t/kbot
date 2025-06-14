@@ -1,6 +1,27 @@
 pipeline {
-    agent any
-    
+    agent {
+          kubernetes {
+    yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: go-agent
+    image: ghcr.io/sarco3t/jenkins-go-agent:v0.0.3-8394753
+    command: ["sleep"]
+    args: ["infinity"]
+    volumeMounts:
+    - mountPath: /var/run/docker.sock
+      name: docker-sock
+  volumes:
+  - name: docker-sock
+    hostPath:
+      path: /var/run/docker.sock
+"""
+    defaultContainer 'go-agent'
+  }
+    }
+        
     parameters {
         choice(
             name: 'TARGETOS',
@@ -16,40 +37,16 @@ pipeline {
 
 
     stages {
-        stage('Install tools') {
-            steps {
-                sh '''
-                apt-get update
-                apt-get install -y make wget curl git
-                '''
-        }
-        }
-        
+
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
 
-        stage('Set up Go') {
-            steps {
-                sh '''
-                wget -q https://go.dev/dl/go1.22.4.linux-amd64.tar.gz
-                sudo rm -rf /usr/local/go
-                sudo tar -C /usr/local -xzf go1.22.4.linux-amd64.tar.gz
-                export PATH=/usr/local/go/bin:$PATH
-                go version
-                go env
-                '''
-            }
-        }
-
         stage('Run golangci-lint') {
             steps {
-                sh '''
-                curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin latest
-                $(go env GOPATH)/bin/golangci-lint run --timeout=5m
-                '''
+                sh 'golangci-lint run --timeout=5m'
             }
         }
 

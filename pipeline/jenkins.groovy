@@ -53,7 +53,7 @@ spec:
         stage('Build') {
             steps {
                 dir("${env.WORKSPACE}") {
-                    sh "make build TARGETOS=${params.TARGETOS} TARGETARCH=${params.TARGETARCH}"
+                    sh "make image TARGETOS=${params.TARGETOS} TARGETARCH=${params.TARGETARCH}"
                 }
             }
         }

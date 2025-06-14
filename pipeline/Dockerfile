@@ -17,8 +17,9 @@ ENV PATH=$GOROOT/bin:$PATH
 RUN curl -fsSL https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz | tar -C /usr/local -xz
 
 # Install golangci-lint
-ENV GOLANGCI_LINT_VERSION=v1.59.1
-RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.1.6
+ENV GOLANGCI_LINT_VERSION=v2.1.6
+RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | \
+    sh -s -- -b /usr/local/bin ${GOLANGCI_LINT_VERSION}
 
 # Default command for Kubernetes agent to keep container alive
 CMD ["sleep", "infinity"]

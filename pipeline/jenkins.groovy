@@ -7,7 +7,7 @@ kind: Pod
 spec:
   containers:
   - name: go-agent
-    image: ghcr.io/sarco3t/jenkins-go-agent:v0.0.3-c57e511
+    image: ghcr.io/sarco3t/jenkins-go-agent:v0.0.3-1c89396
     command: ["sleep"]
     args: ["infinity"]
     volumeMounts:

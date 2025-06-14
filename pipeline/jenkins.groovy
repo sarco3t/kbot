@@ -55,7 +55,11 @@ spec:
         stage('Build') {
             steps {
                 dir("${env.WORKSPACE}") {
-                    sh "make image TARGETOS=${params.TARGETOS} TARGETARCH=${params.TARGETARCH}"
+                    sh '''
+                       export GIT_DIR=.git && export GIT_WORK_TREE=.
+                        git config --global --add safe.directory "$(pwd)"
+                        make image TARGETOS=${params.TARGETOS} TARGETARCH=${params.TARGETARCH}
+                    '''
                 }
             }
         }

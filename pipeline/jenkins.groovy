@@ -47,7 +47,7 @@ spec:
         stage('Run golangci-lint') {
             steps {
                 dir("${env.WORKSPACE}") {
-                    sh 'golangci-lint run --timeout=5m'
+                    sh 'export GIT_DIR=.git && export GIT_WORK_TREE=. && golangci-lint run --timeout=5m'
                 }
             }
         }

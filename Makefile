@@ -91,7 +91,7 @@ setup:
 
 
 image:
-	docker build --platform ${TARGETOS}/${TARGETARCH} . -t ${REGISTRY}/${APP}:${VERSION}-${TARGETOS}-${TARGETARCH} --load
+	docker build --platform ${TARGETOS}/${TARGETARCH} . -t ${REGISTRY}/${APP}:${VERSION}-${TARGETOS}-${TARGETARCH}
 push:
 	docker build --platform ${TARGETOS}/${TARGETARCH} . -t ${REGISTRY}/${APP}:${VERSION}-${TARGETOS}-${TARGETARCH}  --push
 windows:
@@ -113,5 +113,5 @@ image-windows-arm:
 	TARGETOS=windows TARGETARCH=arm64 docker build . -t ${REGISTRY}/${APP}:${VERSION}
 
 jenkins-image:
-	docker build pipeline -t ${REGISTRY}/jenkins-go-agent:${VERSION} --load
+	docker build pipeline -t ${REGISTRY}/jenkins-go-agent:${VERSION}
 

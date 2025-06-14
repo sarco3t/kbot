@@ -4,7 +4,7 @@ stages:
 
 
 services:
-  - docker:24.0.5-dind
+  - docker:28.2.2-dind
 
 variables:
   TARGETARCH: "amd64"

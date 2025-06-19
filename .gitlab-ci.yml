@@ -3,9 +3,6 @@ stages:
   - build
 
 
-services:
-  - docker:28.2.2-dind
-
 variables:
   TARGETARCH: "amd64"
   TARGETOS: "linux"
@@ -27,6 +24,9 @@ lint:
     - golangci-lint run --timeout=5m
 
 build:
+  services:
+    - docker:28.2.2-dind
+
   before_script:
     - mkdir -p ~/.docker/cli-plugins
     - curl -sSL https://github.com/docker/buildx/releases/download/v0.13.1/buildx-v0.13.1.linux-amd64 -o ~/.docker/cli-plugins/docker-buildx

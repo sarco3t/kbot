@@ -13,6 +13,7 @@ variables:
   DOCKER_HOST: tcp://docker:2375
   DOCKER_TLS_CERTDIR: ""
   GIT_DEPTH: 0 # just to reach out last tag
+  DOCKER_BUILDKIT: 1
 
 default:
   image: ghcr.io/sarco3t/jenkins-go-agent:v0.0.3-1c89396

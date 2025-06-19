@@ -13,7 +13,7 @@ spec:
       args:
         - "--host=tcp://0.0.0.0:2375"
     - name: jenkins
-      image: ghcr.io/sarco3t/jenkins-go-agent:v0.0.3
+      image: ghcr.io/sarco3t/jenkins-go-agent:v0.0.3-1c89396
       command:
         - sleep
       args:

@@ -6,12 +6,12 @@ apiVersion: v1
 kind: Pod
 spec:
   containers:
-    - name: dind
-      image: docker:dind
-      securityContext:
-        privileged: true
-      args:
-        - "--host=tcp://0.0.0.0:2375"
+  - name: dind
+    image: docker:dind
+    securityContext:
+      privileged: true
+    args:
+      - "--host=tcp://0.0.0.0:2375"
   - name: go-agent
     image: ghcr.io/sarco3t/jenkins-go-agent:v0.0.3-1c89396
     command: ["sleep"]

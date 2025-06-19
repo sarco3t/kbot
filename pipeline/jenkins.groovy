@@ -1,28 +1,30 @@
 pipeline {
-    agent {
-          kubernetes {
-    yaml """
+  agent {
+    kubernetes {
+      yaml """
 apiVersion: v1
 kind: Pod
 spec:
   containers:
-  - name: dind
-    image: docker:dind
-    securityContext:
-      privileged: true
-    args:
-      - "--host=tcp://0.0.0.0:2375"
-  - name: go-agent
-    image: ghcr.io/sarco3t/jenkins-go-agent:v0.0.3-1c89396
-    command: ["sleep"]
-    args: ["infinity"]
-    env:
-    - name: DOCKER_HOST
-        value: tcp://localhost:2375
+    - name: dind
+      image: docker:dind
+      securityContext:
+        privileged: true
+      args:
+        - "--host=tcp://0.0.0.0:2375"
+    - name: jenkins
+      image: ghcr.io/sarco3t/jenkins-go-agent:v0.0.3
+      command:
+        - sleep
+      args:
+        - infinity
+      env:
+        - name: DOCKER_HOST
+          value: "tcp://localhost:2375"
 """
-    defaultContainer 'go-agent'
-  }
+      defaultContainer 'jenkins'
     }
+  }
         
     parameters {
         choice(

@@ -6,17 +6,19 @@ apiVersion: v1
 kind: Pod
 spec:
   containers:
+    - name: dind
+      image: docker:dind
+      securityContext:
+        privileged: true
+      args:
+        - "--host=tcp://0.0.0.0:2375"
   - name: go-agent
     image: ghcr.io/sarco3t/jenkins-go-agent:v0.0.3-1c89396
     command: ["sleep"]
     args: ["infinity"]
-    volumeMounts:
-    - mountPath: /var/run/docker.sock
-      name: docker-sock
-  volumes:
-  - name: docker-sock
-    hostPath:
-      path: /var/run/docker.sock
+    env:
+    - name: DOCKER_HOST
+        value: tcp://localhost:2375
 """
     defaultContainer 'go-agent'
   }

@@ -5,7 +5,7 @@ WORKDIR /go/src/app
 COPY . .
 RUN TARGETOS=${TARGETOS} TARGETARCH=${TARGETARCH} make build
 
-FROM scratch
+FROM alpine
 WORKDIR /
 COPY --from=builder /go/src/app/build/* .
 

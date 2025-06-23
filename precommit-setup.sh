@@ -90,7 +90,42 @@ pipx --version
 ensure_pipx_path
 install_tools_with_pipx
 
-echo "🔍 Running pre-commit install..."
 pre-commit install
+
+
+HOOK_FILE=".git/hooks/pre-commit"
+if [ -f "$HOOK_FILE" ]; then
+  echo "🔧 Patching pre-commit hook with gitleaks.enabled check..."
+
+  TMP_HOOK="${HOOK_FILE}.tmp"
+
+  awk '
+  BEGIN {
+    print "GITLEAKS_ENABLED=$(git config --get gitleaks.enabled)"
+    print "if [ \"$GITLEAKS_ENABLED\" = \"true\" ]; then"
+    inside=0
+  }
+
+  /if \[ -x "\$INSTALL_PYTHON" \]; then/ { inside=1 }
+
+  {
+    print
+  }
+
+  /^fi$/ && inside {
+    print "else"
+    print "  exit 0"
+    print "fi"
+    inside=0
+  }
+  ' .git/hooks/pre-commit > .git/hooks/pre-commit.tmp && mv .git/hooks/pre-commit.tmp .git/hooks/pre-commit
+
+  git config gitleaks.enabled true
+
+
+  chmod +x "$HOOK_FILE"
+else
+  echo "⚠️ pre-commit hook not found. Run 'pre-commit install' to generate it."
+fi
 
 echo "🎉 All done!"

@@ -14,7 +14,10 @@ image:
   tag: "v0.0.3-946207e"
   arch: amd64
   os: linux
-secret:
-  name: "kbot"
-  env: "TELE_TOKEN"
-  key: "token"
+secrets:
+  - name: "kbot"
+    env: "TELE_TOKEN"
+    key: "token"
+  - name: "kbot"
+    env: "API_VERSION"
+    key: "api_version"

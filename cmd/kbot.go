@@ -4,19 +4,67 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"time"
 
 	"github.com/spf13/cobra"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/resource"
+	semconv "go.opentelemetry.io/otel/semconv/v1.9.0"
 	"gopkg.in/telebot.v4"
 )
 
 var (
 	// TeleToken bot
-	TeleToken = os.Getenv("TELE_TOKEN")
+	TeleToken   = os.Getenv("TELE_TOKEN")
+	MetricsHost = os.Getenv("METRICS_HOST")
 )
+
+func initMetrics(ctx context.Context) {
+
+	// Create a new OTLP Metric gRPC exporter with the specified endpoint and options
+	exporter, _ := otlpmetricgrpc.New(
+		ctx,
+		otlpmetricgrpc.WithEndpoint(MetricsHost),
+		otlpmetricgrpc.WithInsecure(),
+	)
+
+	// Define the resource with attributes that are common to all metrics.
+	// labels/tags/resources that are common to all metrics.
+	resource := resource.NewWithAttributes(
+		semconv.SchemaURL,
+		semconv.ServiceNameKey.String(fmt.Sprintf("kbot_%s", appVersion)),
+	)
+
+	// Create a new MeterProvider with the specified resource and reader
+	mp := sdkmetric.NewMeterProvider(
+		sdkmetric.WithResource(resource),
+		sdkmetric.WithReader(
+			// collects and exports metric data every 10 seconds.
+			sdkmetric.NewPeriodicReader(exporter, sdkmetric.WithInterval(10*time.Second)),
+		),
+	)
+
+	// Set the global MeterProvider to the newly created MeterProvider
+	otel.SetMeterProvider(mp)
+
+}
+
+func pmetrics(ctx context.Context, payload string) {
+	// Get the global MeterProvider and create a new Meter with the name "kbot_light_signal_counter"
+	meter := otel.GetMeterProvider().Meter("kbot_light_signal_counter")
+
+	// Get or create an Int64Counter instrument with the name "kbot_light_signal_<payload>"
+	counter, _ := meter.Int64Counter(fmt.Sprintf("kbot_light_signal_%s", payload))
+
+	// Add a value of 1 to the Int64Counter
+	counter.Add(ctx, 1)
+}
 
 type TrafficSignal struct {
 	Pin int8
@@ -61,7 +109,7 @@ to quickly create a Cobra application.`,
 		kbot.Handle(telebot.OnText, func(m telebot.Context) error {
 			log.Printf("Received message: %s", m.Text())
 			payload := m.Message().Payload
-
+			pmetrics(context.Background(), payload)
 			switch payload {
 			case "hello":
 				return m.Send(fmt.Sprintf("Hello I'm Kbot %s!", appVersion))
@@ -87,6 +135,10 @@ to quickly create a Cobra application.`,
 }
 
 func init() {
+	if MetricsHost != "" {
+		initMetrics(context.Background())
+	}
+
 	rootCmd.AddCommand(kbotCmd)
 
 	// Here you will define your flags and configuration settings.

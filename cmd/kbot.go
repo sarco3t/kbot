@@ -26,7 +26,7 @@ var (
 )
 
 func initMetrics(ctx context.Context) {
-
+	log.Printf("Init metrics: %s", MetricsHost)
 	// Create a new OTLP Metric gRPC exporter with the specified endpoint and options
 	exporter, _ := otlpmetricgrpc.New(
 		ctx,
@@ -61,7 +61,7 @@ func pmetrics(ctx context.Context, payload string) {
 
 	// Get or create an Int64Counter instrument with the name "kbot_light_signal_<payload>"
 	counter, _ := meter.Int64Counter(fmt.Sprintf("kbot_light_signal_%s", payload))
-
+	log.Printf("Send metrics: %s", payload)
 	// Add a value of 1 to the Int64Counter
 	counter.Add(ctx, 1)
 }

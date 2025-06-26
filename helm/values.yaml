@@ -11,17 +11,15 @@ image:
   # This sets the pull policy for images.
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "v0.0.3-b71c9c3"
+  tag: "v0.0.3-e7d5579"
   arch: amd64
   os: linux
-
 # Regular environment variables
 env:
   - name: "LOG_LEVEL"
     value: "debug"
   - name: "METRICS_HOST"
     value: ""
-
 # Secret-based environment variables
 secrets:
   - name: "kbot"

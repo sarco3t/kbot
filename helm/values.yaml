@@ -14,6 +14,15 @@ image:
   tag: "v0.0.3-b71c9c3"
   arch: amd64
   os: linux
+
+# Regular environment variables
+env:
+  - name: "LOG_LEVEL"
+    value: "debug"
+  - name: "METRICS_HOST"
+    value: ""
+
+# Secret-based environment variables
 secrets:
   - name: "kbot"
     env: "TELE_TOKEN"

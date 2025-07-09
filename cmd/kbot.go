@@ -13,8 +13,10 @@ import (
 	"github.com/spf13/cobra"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.9.0"
 	"gopkg.in/telebot.v4"
 )
@@ -24,6 +26,36 @@ var (
 	TeleToken   = os.Getenv("TELE_TOKEN")
 	MetricsHost = os.Getenv("METRICS_HOST")
 )
+
+func initTracing(ctx context.Context) {
+	log.Printf("Init tracing: %s", MetricsHost)
+	// Create a new OTLP Trace gRPC exporter
+	traceExporter, err := otlptracegrpc.New(
+		ctx,
+		otlptracegrpc.WithEndpoint(MetricsHost),
+		otlptracegrpc.WithInsecure(),
+	)
+	if err != nil {
+		log.Printf("Failed to create trace exporter: %v", err)
+		return
+	}
+
+	// Define the resource with attributes that are common to all traces
+	resource := resource.NewWithAttributes(
+		semconv.SchemaURL,
+		semconv.ServiceNameKey.String(fmt.Sprintf("kbot_%s", appVersion)),
+		semconv.ServiceVersionKey.String(appVersion),
+	)
+
+	// Create a new TracerProvider with the specified resource and exporter
+	tp := sdktrace.NewTracerProvider(
+		sdktrace.WithBatcher(traceExporter),
+		sdktrace.WithResource(resource),
+	)
+
+	// Set the global TracerProvider to the newly created TracerProvider
+	otel.SetTracerProvider(tp)
+}
 
 func initMetrics(ctx context.Context) {
 	log.Printf("Init metrics: %s", MetricsHost)
@@ -107,25 +139,54 @@ to quickly create a Cobra application.`,
 		}
 
 		kbot.Handle(telebot.OnText, func(m telebot.Context) error {
+			// Create a new span for each message
+			tracer := otel.GetTracerProvider().Tracer("kbot")
+			ctx, span := tracer.Start(context.Background(), "handle_message")
+			defer span.End()
+
+			// Add attributes to the span
+			span.SetAttributes(
+				semconv.MessagingSystemKey.String("telegram"),
+				semconv.MessagingOperationKey.String("receive"),
+			)
+
 			log.Printf("Received message: %s", m.Text())
 			payload := m.Message().Payload
-			pmetrics(context.Background(), payload)
+
+			// Create a child span for metrics
+			_, metricsSpan := tracer.Start(ctx, "send_metrics")
+			pmetrics(ctx, payload)
+			metricsSpan.End()
+
 			switch payload {
 			case "hello":
+				span.SetAttributes(semconv.MessagingOperationKey.String("hello_response"))
 				return m.Send(fmt.Sprintf("Hello I'm Kbot %s!", appVersion))
 
 			case "red", "amber", "green":
+				// Create a child span for traffic signal operation
+				_, signalSpan := tracer.Start(ctx, "traffic_signal_operation")
+				defer signalSpan.End()
+
+				signalSpan.SetAttributes(
+					semconv.MessagingOperationKey.String("traffic_signal"),
+					semconv.MessagingDestinationKey.String(payload),
+				)
+
 				signal := trafficSignals[payload]
 
 				if !signal.On {
 					signal.On = true
+					signalSpan.SetAttributes(semconv.MessagingOperationKey.String("turn_on"))
 				} else {
 					signal.On = false
+					signalSpan.SetAttributes(semconv.MessagingOperationKey.String("turn_off"))
 				}
 
 				return m.Send(fmt.Sprintf("Switched %s light %s", payload, map[bool]string{true: "on", false: "off"}[signal.On]))
 
 			default:
+				span.SetAttributes(semconv.MessagingOperationKey.String("unknown_command"))
 				return m.Send("Usage: /s red|amber|green")
 			}
 		})
@@ -137,6 +198,7 @@ to quickly create a Cobra application.`,
 func init() {
 	if MetricsHost != "" {
 		initMetrics(context.Background())
+		initTracing(context.Background())
 	}
 
 	rootCmd.AddCommand(kbotCmd)
